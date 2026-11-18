@@ -450,7 +450,9 @@
       const nombre = data.choices?.[0]?.message?.content?.trim() || "";
       nombreInput.value = nombre;
       alertaNombre.className = "alert alert-info";
-      alertaNombre.innerHTML = "✅ Carta identificada por IA. Puedes editar el nombre si es incorrecto.";
+      alertaNombre.innerHTML = "✅ Carta identificada por IA. Puedes editar el nombre y buscar de nuevo si es incorrecto.";
+      // Buscar automaticamente sin esperar que el usuario presione el boton
+      if(nombre) buscarPrecios(nombre);
 
     } catch(err){
       nombreInput.value = "";
@@ -463,8 +465,11 @@
     } finally {
       spinnerOcr.classList.remove("active");
       secNombre.style.display = "block";
-      secNombre.scrollIntoView({ behavior:"smooth", block:"nearest" });
-      nombreInput.focus();
+      // Solo hacer scroll al nombre si no hubo busqueda automatica (caso sin nombre)
+      if(!nombreInput.value) {
+        secNombre.scrollIntoView({ behavior:"smooth", block:"nearest" });
+        nombreInput.focus();
+      }
     }
   }
 
