@@ -135,12 +135,30 @@
 
     footer{position:relative;z-index:1;text-align:center;padding:1.5rem;color:var(--muted);font-size:.75rem;letter-spacing:.03em}
 
-    @media(max-width:540px){
+    @media(max-width:600px){
       .card{padding:1.25rem}
       .input-row{flex-direction:column}
       .btn-align-bottom{align-self:stretch}
-      th:last-child,td:last-child{display:none}
       .modal{padding:1.5rem}
+
+      /* Stats: 2 columnas fijas en movil */
+      .stats-grid{grid-template-columns:1fr 1fr}
+      /* "Con precio" ocupa las 2 columnas completo */
+      .stats-grid .stat-box:last-child{grid-column:1/-1}
+
+      /* Tabla movil: ocultar Link, compactar */
+      th:last-child,td:last-child{display:none}
+      th:nth-child(2),td:nth-child(2){max-width:120px;word-break:break-word}
+      table{font-size:.82rem}
+      th,td{padding:.55rem .65rem}
+
+      /* Tienda badge mas pequeno */
+      .tienda-badge{font-size:.68rem;padding:.15rem .45rem}
+
+      /* Resultado titulo */
+      .result-title{font-size:.95rem}
+      h1{font-size:1.6rem}
+      .logo-icon{width:42px;height:42px;font-size:1.3rem}
     }
   </style>
 </head>
@@ -533,15 +551,17 @@
         <p style="margin-top:.4rem;font-size:.82rem;">Intenta con un nombre más corto o diferente.</p></div>`;
     } else {
       html += `<div class="table-wrap"><table>
-        <thead><tr><th>Tienda</th><th>Producto</th><th>Precio</th><th>Link</th></tr></thead>
+        <thead><tr><th>Tienda</th><th>Producto</th><th>Precio</th></tr></thead>
         <tbody>`;
       for(const r of resultados){
         const badge  = badgeClass(r.tienda);
         const precio = r.precio ? `<span class="precio-val">${clp(r.precio)}</span>` : `<span class="sin-precio">Sin precio</span>`;
-        const link   = r.url ? `<a href="${escHtml(r.url)}" target="_blank" rel="noopener">Ver →</a>` : `<span class="sin-precio">—</span>`;
+        const nombreCell = r.url
+          ? `<a href="${escHtml(r.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--text);text-decoration:none;display:block;">${escHtml(r.nombre)}<span style="display:inline-block;margin-left:.35rem;font-size:.72rem;color:var(--purple2);">↗</span></a>`
+          : escHtml(r.nombre);
         html += `<tr>
           <td><span class="tienda-badge ${badge}"><span class="badge-dot"></span>${escHtml(r.tienda)}</span></td>
-          <td>${escHtml(r.nombre)}</td><td>${precio}</td><td>${link}</td></tr>`;
+          <td>${nombreCell}</td><td>${precio}</td></tr>`;
       }
       html += `</tbody></table></div>`;
     }
