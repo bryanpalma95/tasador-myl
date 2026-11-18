@@ -340,6 +340,9 @@
     <h1>Tasador MyL</h1>
   </div>
   <p class="tagline">Descubre el valor de tus cartas de Mitos y Leyendas en tiempo real</p>
+  <div class="alert alert-warn" style="max-width:600px; margin: .8rem auto 0; font-size:.8rem;">
+    ⏳ El servidor backend usa el plan gratuito de Render. La primera búsqueda puede tardar hasta 50 segundos si estuvo inactivo.
+  </div>
   <div class="stores-pill">
     <span class="store-tag">● Gorila TCG</span>
     <span class="store-tag">● Cachorro Store</span>
@@ -492,7 +495,10 @@
     try {
       const fd = new FormData();
       fd.append("foto", file);
-      const res  = await fetch(`${API_URL}/detectar`, { method: "POST", body: fd });
+      const ctrl2 = new AbortController();
+      const tid2 = setTimeout(() => ctrl2.abort(), 65000);
+      const res  = await fetch(`${API_URL}/detectar`, { method: "POST", body: fd, signal: ctrl2.signal });
+      clearTimeout(tid2);
       const data = await res.json();
       nombreInput.value = data.nombre || "";
       secNombre.style.display = "block";
@@ -526,15 +532,24 @@
     secResult.scrollIntoView({ behavior: "smooth", block: "start" });
 
     try {
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 65000);
       const res  = await fetch(`${API_URL}/buscar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre })
+        body: JSON.stringify({ nombre }),
+        signal: controller.signal
       });
+      clearTimeout(tid);
       const data = await res.json();
       renderResultados(data, nombre);
     } catch {
-      showError("No se pudo conectar con el servidor. Espera unos segundos (el servidor puede estar iniciando) y vuelve a intentarlo.");
+      const isTimeout = err.name === "AbortError";
+      showError(
+        isTimeout
+          ? "El servidor tardó demasiado en responder (puede estar iniciando tras inactividad). Espera 10 segundos y vuelve a intentarlo. ⏳"
+          : "No se pudo conectar con el servidor. Espera unos segundos y vuelve a intentarlo."
+      );
     } finally {
       spinnerBus.classList.remove("active");
       btnBuscar.disabled         = false;
