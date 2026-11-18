@@ -1,0 +1,268 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tasador Mitos y Leyendas</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f0c1d;
+      color: #e8e0f0;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+    h1 { text-align:center; font-size:2rem; color:#c9a84c; margin-bottom:.25rem; letter-spacing:.04em; }
+    .subtitle { text-align:center; color:#8a7aaa; margin-bottom:2rem; font-size:.95rem; }
+    .card {
+      background:#1a1430; border:1px solid #2d2550; border-radius:12px;
+      padding:1.5rem; max-width:760px; margin:0 auto 1.5rem;
+    }
+    .upload-area {
+      border:2px dashed #4a3d7a; border-radius:8px; padding:2rem;
+      text-align:center; cursor:pointer; transition:border-color .2s;
+    }
+    .upload-area:hover { border-color:#c9a84c; }
+    #foto-input { display:none; }
+    .upload-label { display:block; cursor:pointer; color:#8a7aaa; }
+    .upload-label span { display:block; font-size:3rem; margin-bottom:.5rem; }
+    #preview-wrap { margin-top:1rem; }
+    #preview-wrap img { max-height:220px; border-radius:8px; border:1px solid #4a3d7a; }
+    .btn {
+      display:inline-block; padding:.6rem 1.4rem; border-radius:6px; border:none;
+      cursor:pointer; font-size:1rem; font-weight:600; transition:opacity .15s;
+    }
+    .btn:hover { opacity:.85; }
+    .btn:disabled { opacity:.4; cursor:not-allowed; }
+    .btn-primary { background:#c9a84c; color:#0f0c1d; }
+    .btn-secondary { background:#4a3d7a; color:#e8e0f0; }
+    .btn-sm { padding:.35rem .9rem; font-size:.85rem; }
+    .form-row { margin-top:1rem; display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; }
+    input[type="text"] {
+      flex:1; min-width:200px; padding:.6rem .9rem; background:#110e22;
+      border:1px solid #4a3d7a; border-radius:6px; color:#e8e0f0; font-size:1rem;
+    }
+    input[type="text"]:focus { outline:none; border-color:#c9a84c; }
+    .detected-label { color:#8a7aaa; font-size:.85rem; margin-bottom:.4rem; }
+    .stats-row { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.2rem; }
+    .stat-box {
+      flex:1; min-width:120px; background:#110e22; border:1px solid #2d2550;
+      border-radius:8px; padding:.75rem 1rem; text-align:center;
+    }
+    .stat-box .val { font-size:1.4rem; font-weight:700; color:#c9a84c; }
+    .stat-box .lbl { font-size:.75rem; color:#8a7aaa; margin-top:.2rem; }
+    table { width:100%; border-collapse:collapse; font-size:.92rem; }
+    th { background:#2d2550; color:#c9a84c; padding:.6rem .8rem; text-align:left; font-weight:600; }
+    td { padding:.55rem .8rem; border-bottom:1px solid #1e1a38; }
+    tr:hover td { background:#1e1a38; }
+    .tienda-badge { display:inline-block; padding:.15rem .5rem; border-radius:4px; font-size:.78rem; font-weight:600; }
+    .badge-gorila  { background:#3a5a2a; color:#90e060; }
+    .badge-cachorro{ background:#3a3010; color:#f0c040; }
+    .badge-camelo  { background:#1a3a5a; color:#60b0f0; }
+    .precio-val { font-weight:700; color:#c9a84c; }
+    .sin-precio { color:#555; font-style:italic; }
+    a { color:#7ab4f0; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .alert { padding:.75rem 1rem; border-radius:6px; margin-bottom:1rem; }
+    .alert-warn { background:#3a2800; border:1px solid #c9a84c; color:#f0c060; }
+    .alert-err  { background:#3a0000; border:1px solid #f04040; color:#f08080; }
+    .no-results { text-align:center; color:#8a7aaa; padding:2rem 0; }
+    .spinner { display:none; text-align:center; padding:1.5rem; color:#8a7aaa; font-size:1.1rem; }
+    .spinner.active { display:block; }
+    #seccion-nombre { display:none; }
+    #seccion-resultado { display:none; }
+  </style>
+</head>
+<body>
+
+<h1>🧙 Tasador MyL</h1>
+<p class="subtitle">Sube la foto de tu carta y te digo cuánto vale en las tiendas</p>
+
+<!-- CONFIG: URL del backend en Render -->
+<script>
+  // Cambia esta URL por la de tu servicio en Render una vez desplegado
+  const API_URL = "https://tasador-myl-api.onrender.com";
+</script>
+
+<!-- PASO 1: subir foto -->
+<div class="card">
+  <div class="upload-area" id="drop-zone">
+    <label for="foto-input" class="upload-label">
+      <span>📷</span>
+      Arrastra la foto aquí o haz clic para elegir
+    </label>
+    <input type="file" id="foto-input" accept="image/*"/>
+  </div>
+  <div id="preview-wrap"></div>
+  <div class="spinner" id="spinner-ocr">🔍 Detectando nombre con OCR…</div>
+</div>
+
+<!-- PASO 2: confirmar nombre -->
+<div class="card" id="seccion-nombre">
+  <p class="detected-label">✅ Nombre detectado — puedes editarlo si es incorrecto:</p>
+  <div class="form-row">
+    <input type="text" id="nombre-input" placeholder="Nombre de la carta…"/>
+    <button class="btn btn-primary" id="btn-buscar">🔍 Buscar precios</button>
+  </div>
+</div>
+
+<!-- PASO 3: resultados -->
+<div class="card" id="seccion-resultado">
+  <h2 id="resultado-titulo" style="color:#c9a84c; margin-bottom:1rem;"></h2>
+  <div class="spinner" id="spinner-buscar">⏳ Consultando tiendas…</div>
+  <div id="resultado-contenido"></div>
+  <div class="form-row" style="margin-top:1.2rem;" id="form-rebuscar" style="display:none;">
+    <input type="text" id="nombre-rebuscar" placeholder="Buscar otro nombre…"/>
+    <button class="btn btn-secondary btn-sm" id="btn-rebuscar">🔍 Buscar de nuevo</button>
+  </div>
+</div>
+
+<script>
+const fotoInput   = document.getElementById("foto-input");
+const dropZone    = document.getElementById("drop-zone");
+const previewWrap = document.getElementById("preview-wrap");
+const spinnerOcr  = document.getElementById("spinner-ocr");
+const secNombre   = document.getElementById("seccion-nombre");
+const nombreInput = document.getElementById("nombre-input");
+const btnBuscar   = document.getElementById("btn-buscar");
+const secResult   = document.getElementById("seccion-resultado");
+const resultTit   = document.getElementById("resultado-titulo");
+const spinnerBus  = document.getElementById("spinner-buscar");
+const resultCont  = document.getElementById("resultado-contenido");
+const formRebuscar= document.getElementById("form-rebuscar");
+const nombreReb   = document.getElementById("nombre-rebuscar");
+const btnReb      = document.getElementById("btn-rebuscar");
+
+let fotoFile = null;
+
+// ── Drag & drop ──────────────────────────────────────────────
+dropZone.addEventListener("dragover",  e => { e.preventDefault(); dropZone.style.borderColor = "#c9a84c"; });
+dropZone.addEventListener("dragleave", () => { dropZone.style.borderColor = "#4a3d7a"; });
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.style.borderColor = "#4a3d7a";
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+fotoInput.addEventListener("change", () => { if (fotoInput.files[0]) handleFile(fotoInput.files[0]); });
+
+// ── Manejo de archivo ─────────────────────────────────────────
+function handleFile(file) {
+  fotoFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    previewWrap.innerHTML = `<img src="${e.target.result}" alt="Carta"/>`;
+  };
+  reader.readAsDataURL(file);
+  detectarNombre(file);
+}
+
+async function detectarNombre(file) {
+  spinnerOcr.classList.add("active");
+  secNombre.style.display = "none";
+  try {
+    const fd = new FormData();
+    fd.append("foto", file);
+    const res = await fetch(`${API_URL}/detectar`, { method: "POST", body: fd });
+    const data = await res.json();
+    nombreInput.value = data.nombre || "";
+    secNombre.style.display = "block";
+    nombreInput.focus();
+  } catch (err) {
+    nombreInput.value = "";
+    secNombre.style.display = "block";
+    mostrarError("No se pudo conectar con el servidor OCR. Escribe el nombre manualmente.");
+  } finally {
+    spinnerOcr.classList.remove("active");
+  }
+}
+
+// ── Buscar precios ────────────────────────────────────────────
+btnBuscar.addEventListener("click", () => buscarPrecios(nombreInput.value));
+btnReb.addEventListener("click",    () => buscarPrecios(nombreReb.value));
+nombreInput.addEventListener("keydown", e => { if (e.key === "Enter") buscarPrecios(nombreInput.value); });
+nombreReb.addEventListener("keydown",   e => { if (e.key === "Enter") buscarPrecios(nombreReb.value); });
+
+async function buscarPrecios(nombre) {
+  nombre = nombre.trim();
+  if (!nombre) return;
+
+  resultTit.textContent = `Resultados para: "${nombre}"`;
+  secResult.style.display = "block";
+  spinnerBus.classList.add("active");
+  resultCont.innerHTML = "";
+  formRebuscar.style.display = "none";
+  btnBuscar.disabled = true;
+
+  try {
+    const res  = await fetch(`${API_URL}/buscar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre })
+    });
+    const data = await res.json();
+    renderResultados(data);
+  } catch (err) {
+    mostrarError("Error al conectar con el servidor. Intenta de nuevo.");
+  } finally {
+    spinnerBus.classList.remove("active");
+    btnBuscar.disabled = false;
+    nombreReb.value = nombre;
+    formRebuscar.style.display = "flex";
+    secResult.scrollIntoView({ behavior: "smooth" });
+  }
+}
+
+function fmt(n) {
+  return "$" + n.toLocaleString("es-CL");
+}
+
+function badgeClass(tienda) {
+  if (tienda.includes("Gorila"))   return "badge-gorila";
+  if (tienda.includes("Cachorro")) return "badge-cachorro";
+  return "badge-camelo";
+}
+
+function renderResultados(data) {
+  const { resultados = [], stats = {} } = data;
+  let html = "";
+
+  if (stats.con_precio) {
+    html += `<div class="stats-row">
+      <div class="stat-box"><div class="val">${fmt(stats.minimo)}</div><div class="lbl">Mínimo</div></div>
+      <div class="stat-box"><div class="val">${fmt(stats.promedio)}</div><div class="lbl">Promedio</div></div>
+      <div class="stat-box"><div class="val">${fmt(stats.mediana)}</div><div class="lbl">Mediana</div></div>
+      <div class="stat-box"><div class="val">${fmt(stats.maximo)}</div><div class="lbl">Máximo</div></div>
+      <div class="stat-box"><div class="val">${stats.con_precio}/${stats.total}</div><div class="lbl">Con precio</div></div>
+    </div>`;
+  }
+
+  if (resultados.length === 0) {
+    html += `<div class="no-results">No se encontraron resultados.<br>Intenta con un nombre más corto.</div>`;
+  } else {
+    html += `<table><thead><tr><th>Tienda</th><th>Producto</th><th>Precio</th><th>Link</th></tr></thead><tbody>`;
+    for (const r of resultados) {
+      const badge = badgeClass(r.tienda);
+      const precio = r.precio ? `<span class="precio-val">${fmt(r.precio)}</span>` : `<span class="sin-precio">—</span>`;
+      const link   = r.url ? `<a href="${r.url}" target="_blank" rel="noopener">ver →</a>` : "";
+      html += `<tr>
+        <td><span class="tienda-badge ${badge}">${r.tienda}</span></td>
+        <td>${r.nombre}</td>
+        <td>${precio}</td>
+        <td>${link}</td>
+      </tr>`;
+    }
+    html += `</tbody></table>`;
+  }
+
+  resultCont.innerHTML = html;
+}
+
+function mostrarError(msg) {
+  resultCont.innerHTML = `<div class="alert alert-err">⚠️ ${msg}</div>`;
+  secResult.style.display = "block";
+}
+</script>
+
+</body>
+</html>
