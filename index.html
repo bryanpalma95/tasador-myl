@@ -439,6 +439,13 @@
 <script>
   const API_URL = "https://tasador-myl.onrender.com";
 
+  // Warm-up: despierta el servidor al cargar la pagina para reducir latencia
+  (async () => {
+    try {
+      await fetch(`${API_URL}/health`, { method: "GET", signal: AbortSignal.timeout(60000) });
+    } catch {}
+  })();
+
   // ── Elementos ──────────────────────────────────────────────
   const fotoInput    = document.getElementById("foto-input");
   const dropZone     = document.getElementById("drop-zone");
