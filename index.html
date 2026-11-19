@@ -233,40 +233,27 @@
   <div class="card">
     <p class="card-title">📷 Identificar carta</p>
 
-    <!-- Tabs: Subir / Cámara -->
-    <div class="upload-tabs">
-      <button class="tab-btn active" id="tab-subir" onclick="setTab('subir')">📁 Subir foto</button>
-      <button class="tab-btn" id="tab-camara" onclick="setTab('camara')">📷 Usar cámara</button>
-    </div>
-
-    <!-- Panel: Subir foto -->
-    <div id="panel-subir">
-      <label for="foto-input">
-        <div class="upload-zone" id="drop-zone">
-          <div class="upload-icon">📸</div>
-          <p class="upload-title">Arrastra tu foto aquí</p>
-          <p class="upload-hint">o haz clic para elegir · JPG, PNG, WEBP</p>
-        </div>
+    <!-- Botones de accion -->
+    <div class="action-btns">
+      <label for="foto-input" class="btn-action">
+        <span class="action-icon">🖼️</span>
+        <span class="action-label">
+          <span class="action-title">Subir foto</span>
+          <span class="action-hint">JPG, PNG, WEBP</span>
+        </span>
       </label>
-      <input type="file" id="foto-input" accept="image/*"/>
+      <button class="btn-action" onclick="abrirCamara()">
+        <span class="action-icon">📷</span>
+        <span class="action-label">
+          <span class="action-title">Usar cámara</span>
+          <span class="action-hint">Captura en vivo</span>
+        </span>
+      </button>
     </div>
+    <input type="file" id="foto-input" accept="image/*" style="display:none"/>
 
-    <!-- Panel: Cámara en vivo -->
-    <div id="panel-camara" style="display:none;">
-      <div id="camara-wrap">
-        <video id="camara-video" autoplay playsinline muted></video>
-        <div class="camara-frame"></div>
-        <div class="camara-overlay">
-          <button class="btn btn-capturar" id="btn-capturar" onclick="capturarFoto()">
-            📸 Capturar carta
-          </button>
-        </div>
-      </div>
-      <canvas id="canvas-hidden"></canvas>
-    </div>
-
-    <!-- Preview compartido -->
-    <div id="preview-wrap">
+    <!-- Preview -->
+    <div id="preview-wrap" style="margin-top:1rem;">
       <img id="preview-img" src="" alt="Vista previa de la carta"/>
       <label for="foto-input" class="preview-overlay">🔄 Cambiar foto</label>
     </div>
@@ -275,6 +262,25 @@
       <div class="spinner"></div>
       <p class="spinner-txt" id="spinner-ocr-txt">Identificando carta con IA…</p>
     </div>
+  </div>
+
+  <!-- Modal cámara (pantalla completa) -->
+  <div class="camara-modal" id="camara-modal">
+    <video id="camara-video" autoplay playsinline muted></video>
+    <div class="camara-ui">
+      <div class="camara-top">
+        <button class="btn-cerrar-camara" onclick="cerrarCamara()">✕</button>
+      </div>
+      <div></div>
+      <div class="camara-bottom">
+        <button class="btn-capturar" id="btn-capturar" onclick="capturarFoto()" title="Capturar carta"></button>
+      </div>
+    </div>
+    <div class="camara-frame-wrap">
+      <div class="camara-frame-box"></div>
+      <p class="camara-frame-label">Encuadra la carta aquí</p>
+    </div>
+    <canvas id="canvas-hidden"></canvas>
   </div>
 
   <!-- PASO 2: Confirmar nombre -->
@@ -607,47 +613,31 @@
 
   function escHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
-  // ── CAMARA ──────────────────────────────────────────────────
+  // ── CAMARA MODAL ────────────────────────────────────────────
   let streamActivo = null;
 
-  function setTab(tab) {
-    const tabSubir  = document.getElementById("tab-subir");
-    const tabCamara = document.getElementById("tab-camara");
-    const panelSubir  = document.getElementById("panel-subir");
-    const panelCamara = document.getElementById("panel-camara");
-
-    if(tab === "subir") {
-      tabSubir.classList.add("active");
-      tabCamara.classList.remove("active");
-      panelSubir.style.display  = "";
-      panelCamara.style.display = "none";
-      detenerCamara();
-    } else {
-      tabCamara.classList.add("active");
-      tabSubir.classList.remove("active");
-      panelSubir.style.display  = "none";
-      panelCamara.style.display = "";
-      iniciarCamara();
-    }
-  }
-
-  async function iniciarCamara() {
-    const video    = document.getElementById("camara-video");
-    const wrap     = document.getElementById("camara-wrap");
+  async function abrirCamara() {
+    const modal = document.getElementById("camara-modal");
+    const video = document.getElementById("camara-video");
     try {
-      // Preferir camara trasera en movil
       streamActivo = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
         audio: false
       });
       video.srcObject = streamActivo;
-      wrap.style.display = "block";
+      modal.classList.add("active");
+      // Bloquear scroll del body mientras camara abierta
+      document.body.style.overflow = "hidden";
     } catch(err) {
-      wrap.style.display = "none";
-      resultCont.innerHTML = `<div class="alert alert-err">⚠️ No se pudo acceder a la cámara: ${escHtml(err.message)}. Usa la opción "Subir foto" en su lugar.</div>`;
+      resultCont.innerHTML = `<div class="alert alert-err">⚠️ No se pudo acceder a la cámara: ${escHtml(err.message)}.</div>`;
       secResult.style.display = "block";
-      setTab("subir");
     }
+  }
+
+  function cerrarCamara() {
+    detenerCamara();
+    document.getElementById("camara-modal").classList.remove("active");
+    document.body.style.overflow = "";
   }
 
   function detenerCamara() {
@@ -656,7 +646,7 @@
       streamActivo = null;
     }
     const video = document.getElementById("camara-video");
-    video.srcObject = null;
+    if(video) video.srcObject = null;
   }
 
   function capturarFoto() {
@@ -666,24 +656,22 @@
     canvas.height = video.videoHeight || 720;
     canvas.getContext("2d").drawImage(video, 0, 0);
 
-    // Mostrar preview
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
-    previewImg.src = dataUrl;
+    // Preview
+    previewImg.src = canvas.toDataURL("image/jpeg", 0.92);
     previewWrap.style.display = "block";
 
-    // Detener camara y volver a tab subir (para que el preview quede visible)
-    detenerCamara();
-    document.getElementById("panel-camara").style.display = "none";
-    document.getElementById("panel-subir").style.display  = "none";
+    // Cerrar modal
+    cerrarCamara();
 
-    // Convertir canvas a Blob y procesar como si fuera un File
+    // Procesar imagen
     canvas.toBlob(blob => {
       const file = new File([blob], "captura.jpg", { type: "image/jpeg" });
       identificarCarta(file);
-    }, "image/jpeg", 0.9);
+    }, "image/jpeg", 0.92);
   }
 
-  // Detener camara si el usuario sale de la pagina
+  // Cerrar con Escape
+  document.addEventListener("keydown", e => { if(e.key === "Escape") cerrarCamara(); });
   window.addEventListener("beforeunload", detenerCamara);
 </script>
 </body>
