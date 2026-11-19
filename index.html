@@ -160,6 +160,31 @@
       h1{font-size:1.6rem}
       .logo-icon{width:42px;height:42px;font-size:1.3rem}
     }
+
+    /* ── BOTONES ACCION ── */
+    .action-btns{display:flex;gap:.75rem;flex-wrap:wrap}
+    .btn-action{flex:1;min-width:140px;display:flex;align-items:center;gap:.75rem;padding:.9rem 1rem;border-radius:10px;border:1.5px solid var(--border);background:var(--bg3);color:var(--text);font-family:inherit;font-size:.88rem;font-weight:500;cursor:pointer;text-decoration:none;transition:border-color .2s,background .2s,transform .15s}
+    .btn-action:hover{border-color:var(--purple2);background:rgba(160,126,224,.08);transform:translateY(-1px)}
+    .btn-action .action-icon{font-size:1.5rem;flex-shrink:0}
+    .btn-action .action-label{display:flex;flex-direction:column;text-align:left}
+    .btn-action .action-title{font-weight:600;font-size:.88rem;color:var(--text)}
+    .btn-action .action-hint{font-size:.72rem;color:var(--muted);margin-top:.1rem}
+
+    /* ── MODAL CAMARA ── */
+    .camara-modal{display:none;position:fixed;inset:0;z-index:200;background:#000;flex-direction:column}
+    .camara-modal.active{display:flex}
+    .camara-modal #camara-video{width:100%;height:100%;object-fit:cover;display:block}
+    .camara-ui{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:1.5rem 1rem 2rem}
+    .camara-top{display:flex;justify-content:flex-end}
+    .btn-cerrar-camara{background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:50%;width:44px;height:44px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);flex-shrink:0}
+    .camara-frame-wrap{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:min(68vw,240px);aspect-ratio:2.5/3.5;pointer-events:none}
+    .camara-frame-box{width:100%;height:100%;border:2px solid rgba(201,168,76,.85);border-radius:10px;box-shadow:0 0 0 2000px rgba(0,0,0,.4)}
+    .camara-frame-label{text-align:center;margin-top:.5rem;color:rgba(201,168,76,.9);font-size:.75rem;font-weight:500;letter-spacing:.05em;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+    .camara-bottom{display:flex;align-items:center;justify-content:center}
+    .btn-capturar{width:70px;height:70px;border-radius:50%;background:#fff;border:4px solid rgba(255,255,255,.35);cursor:pointer;position:relative;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 20px rgba(0,0,0,.5);flex-shrink:0}
+    .btn-capturar::after{content:"";position:absolute;inset:5px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2))}
+    .btn-capturar:active{transform:scale(.92)}
+    #canvas-hidden{display:none}
   </style>
 </head>
 <body>
