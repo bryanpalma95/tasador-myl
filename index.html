@@ -361,6 +361,7 @@
 
 <script>
   const API_URL   = "https://tasador-myl.onrender.com";
+  let streamActivo = null;
   const GROQ_URL  = "https://api.groq.com/openai/v1/chat/completions";
   const GROQ_MODEL= "qwen/qwen3.8-27b";
   const KEY_NAME  = "tasador_groq_key";
@@ -639,7 +640,6 @@
   function escHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
   // ── CAMARA MODAL ────────────────────────────────────────────
-  let streamActivo = null;
 
   async function abrirCamara() {
     const modal = document.getElementById("camara-modal");
