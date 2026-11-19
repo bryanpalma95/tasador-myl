@@ -1,7 +1,5 @@
 # Tasador Mitos y Leyendas
 
-![Visitas](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fbryanpalma95.github.io%2Ftasador-myl&count_bg=%237C5CBF&title_bg=%23110E1E&icon=&icon_color=%23E7E7E7&title=visitas&edge_flat=true)
-
 Tasador de precios de cartas Mitos y Leyendas desde una foto.
 
 **Demo:** https://bryanpalma95.github.io/tasador-myl
